@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <style>
+  canvas {
+    border: 1px solid #ccc;
+    /* margin-left: 200px; */
+  }
+  </style>
+  <title>Document</title>
+</head>
+<body>
+  <div class="container">
+      <canvas width="300" height="300"></canvas>
+  </div>
+</body>
+<script>
+  var ctx = document.querySelector('canvas').getContext('2d');
+  var img = new Image();
+  img.src = 'images/G_EMS.png';
+  img.onload = function(){
+    ctx.drawImage(img, 100, 0);
+    ctx.rotate(30 * Math.PI / 180);
+    ctx.drawImage(img, 100, 0);
+    ctx.rotate(15 * Math.PI / 180);
+    ctx.drawImage(img, 100, 0);
+  }
+    
+</script>
+</html>
