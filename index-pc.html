@@ -104,7 +104,6 @@
             }, { passive: false });
         }
 
-
         handleTouchStart(e) {
             const touchEvent = this.normalizeTouchEvent(e);
 
@@ -180,6 +179,11 @@
             this.scaleSpriteTarget = null;
             this.dragSpriteTarget = null;
             this.rotateSpriteTarget = null;
+        }
+
+        handleTextChange (value) {
+            this.content = value;
+            this.drawSprite();
         }
 
         // 初始化sprite的拖拽事件
@@ -284,7 +288,6 @@
             }
         }
 
-
         // 判断是否在在某个sprite中移动。当前默认所有的sprite都是长方形的。
         checkIfTouchIn({ touchX, touchY }, sprite) {
             if (!sprite) {
@@ -331,12 +334,23 @@
     class Sprite {
         constructor(props) {
             this.id = Date.now() + Math.floor(Math.random() * 10);
-            this.imgUrl = props.imgUrl;
+            this.type = props.type;
+            if (this.type === "img") {
+                this.imgUrl = props.imgUrl;
+                
+            } else if (this.type === "text") {
+                this.fontSize = props.fontSize;
+                this.fontFamily = props.fontFamily;
+                this.color = props.color;
+                this.content = props.content;
+            }
+            
             this.pos = props.pos;
             this.size = props.size;
             this.baseSize = props.size;
             this.minSize = props.minSize;
             this.maxSize = props.maxSize;
+            
             this.center = [props.pos[0] + props.size[0] / 2, props.pos[1] + props.size[1] / 2];
             this.delIcon = {};
             this.scaleIcon = {};
@@ -468,6 +482,7 @@
             ctx.save();
             const [x, y] = sprite.pos;
             const [width, height] = sprite.size;
+            
             ctx.beginPath();
             if (this.rotateAngle !== 0) {
                 const centerX = x + width / 2;
@@ -477,16 +492,23 @@
                 ctx.translate(-centerX, -centerY);
             }
 
-            if (this.img) {
-                ctx.drawImage(this.img, x, y, width, height);
-            } else {
-                const img = new Image();
-                img.src = this.imgUrl;
-                img.onload = () => {
-                    this.img = img;
-                    ctx.drawImage(img, x, y, width, height);
+            if (this.type === "img") {
+                if (this.img) {
+                    ctx.drawImage(this.img, x, y, width, height);
+                } else {
+                    const img = new Image();
+                    img.src = this.imgUrl;
+                    img.onload = () => {
+                        this.img = img;
+                        ctx.drawImage(img, x, y, width, height);
+                    }
                 }
+            } else if (this.type === "text") {
+                ctx.font = "normal" + this.fontSize + this.fontFamily;
+                ctx.fillStyle = this.color;
+                ctx.fillText(this.content, x, y);
             }
+            
 
             ctx.restore();
             this.drawIcon(ctx, sprite.delIcon);
@@ -665,10 +687,12 @@
             canvas
         });
 
+        const initalX = canvas.offsetWidth / 2 - 30;
+        const initalY = canvas.offsetHeight / 2 - 30; // 30:绘制图片的高度一半
+
         clickItemBox = e => {
-            const initalX = canvas.offsetWidth / 2 - 30;
-            const initalY = canvas.offsetHeight / 2 - 30; // 30:绘制图片的高度一半
             const sprite = new Sprite({
+                type: "img",
                 pos: [initalX, initalY],
                 size: [60, 60],
                 minSize: [30, 30],
@@ -681,11 +705,36 @@
         let isNewText = false;
 
         const text = document.querySelector("textarea");
+        text.addEventListener("focus", function(){
+            isNewText = true;
+            
+        })
         text.addEventListener("keyup", function() {
-            if (this.value) {
+            if (this.value.trim().length > 0) {
+                // let sprite = null;
+                if (isNewText) {
+                    isNewText = false;
+                    this.sprite = new Sprite({
+                        type: "text",
+                        pos: [initalX, initalY],
+                        fontSize: "20",
+                        fontFamily: "arial",
+                        color: "pink",
+                        size: [60, 60],
+                        minSize: [30, 30],
+                        maxSize: [120, 120],
+                        content: this.value
+                    });
+                    stage.append(this.sprite);
+                } else {
+                    this.sprite.drawSprite(this.value);
+                }
                 console.log(this.value);
             }
             
+        })
+        text.addEventListener("blur", function() {
+            this.value = "";
         })
 
     }
