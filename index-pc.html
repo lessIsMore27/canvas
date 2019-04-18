@@ -11,19 +11,24 @@
 
         .box-container {
             margin-top: 20px;
+            display: flex;
         }
 
-        .red-box {
+        .item-box {
             background-color: #eee;
             width: 60px;
             height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-right: 20px;
         }
-        .red-box img {
+        .item-box img {
             max-width: 100%;
             max-height: 100%;
+        }
+        .text {
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -33,10 +38,15 @@
     <canvas width="300" height="300"></canvas>
 </div>
 <div class="box-container">
-    <div class="red-box">
+    <div class="item-box" onclick="clickItemBox(this)">
         <img src="./images/G_CosmeticsFoodAir_FoodAndCosmetics.png" alt="">
     </div>
-    <!-- <div class="red-box"></div> -->
+    <div class="item-box" onclick="clickItemBox(this)">
+        <img src="./images/G_EMS.png" alt="">
+    </div>
+</div>
+<div>
+    <textarea class="text" id="textBox" cols="100" rows="3"></textarea>
 </div>
 
 
@@ -49,6 +59,7 @@
         'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABIUlEQVRYR+3VPUvEQBSF4WdLsRdBQQsrURErC/31CtoJfiDICooigr22cnEDYdGdO5tgmqQJITNz3jn3zpmJgZ/JwPpGgNGB0YGsAzt4w2fy2K5iHY+l8RmAXdzhFad4Kiy6jTNsYh+3i8ZnAFZwjXChBNEWn+IAX10BYn7YeYmtBRBt8Wcc472PEjRrhKXnf0DMi5/MQEv61VH8G0SINDWPnafFY2KmB+Z30YYIwXiiNNXiywLEvIC4mL3jeynxrgBNP/w7wKAlyDRh6vg1jVXThNljGAEUiVnMgJoeqA2iNETGgdoojtMRwA847COK93CTuAeassadEcEUEHGR3fdxFxzhBR/FbP0ZsIYNXJXGZ0pQWqPT/xFgdGB0YHAHvgG1jEwhcd+TtgAAAABJRU5ErkJggg==';
     const SCALE_ICON =
         'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABJElEQVRYR+3UPS8EURTG8d82GolE0NArlT6ARqEiChrRKXTUWqUtJSpCQoNKlEqlL6CloJB4aVRyky2QnZk7szOzzb3NFPPkPP/z3HNux5BPZ8j+EkBKICVQJYExnCF8s84D9vFatOZVAXYKCq9iGvN4zNNWAShqaglXeMItttsEWMY5NrGASawMCjCOb3wVtB7ML7CGaxzVBXCKF+zmAPw3D9LaAEI3AWArA6CfeWsAWeatAOSZNw4QBu0Y672B63c7jc1AMD/prddNzmB2MYGNQdfw9xDGmgfPUYzgrS6Au8jOi17KP/9jnuJDLGImIvZS5kEcAzCLezzjssDhAO9lKGIAQr0p7GEup/hnbys+mgAoU7OUNjaBUkXLiBNASiAl8AO7pD8h3UM4owAAAABJRU5ErkJggg==';
+
     // 整个canvas区域
     class Stage {
         constructor(props) {
@@ -320,6 +331,7 @@
     class Sprite {
         constructor(props) {
             this.id = Date.now() + Math.floor(Math.random() * 10);
+            this.imgUrl = props.imgUrl;
             this.pos = props.pos;
             this.size = props.size;
             this.baseSize = props.size;
@@ -456,31 +468,25 @@
             ctx.save();
             const [x, y] = sprite.pos;
             const [width, height] = sprite.size;
-            
-            const img = new Image();
-            img.src = "./images/G_EMS.png";
-            img.onload = () => {
-                if (this.rotateAngle !== 0) {
-                    const centerX = x + width / 2;
-                    const centerY = y + height / 2;
-                    ctx.translate(centerX, centerY);
-                    ctx.rotate(this.rotateAngle);
-                    ctx.translate(-centerX, -centerY);
-                }
-                ctx.drawImage(img, x, y, width, height);
+            ctx.beginPath();
+            if (this.rotateAngle !== 0) {
+                const centerX = x + width / 2;
+                const centerY = y + height / 2;
+                ctx.translate(centerX, centerY);
+                ctx.rotate(this.rotateAngle);
+                ctx.translate(-centerX, -centerY);
             }
 
-            // ctx.beginPath();
-            // if (this.rotateAngle !== 0) {
-            //     const centerX = x + width / 2;
-            //     const centerY = y + height / 2;
-            //     ctx.translate(centerX, centerY);
-            //     ctx.rotate(this.rotateAngle);
-            //     ctx.translate(-centerX, -centerY);
-            // }
-            // ctx.rect(x, y, width, height);
-            // ctx.fillStyle = '#f00';
-            // ctx.fill();
+            if (this.img) {
+                ctx.drawImage(this.img, x, y, width, height);
+            } else {
+                const img = new Image();
+                img.src = this.imgUrl;
+                img.onload = () => {
+                    this.img = img;
+                    ctx.drawImage(img, x, y, width, height);
+                }
+            }
 
             ctx.restore();
             this.drawIcon(ctx, sprite.delIcon);
@@ -659,17 +665,28 @@
             canvas
         });
 
-        document.querySelector('.red-box').addEventListener('click', function () {
+        clickItemBox = e => {
             const initalX = canvas.offsetWidth / 2 - 30;
             const initalY = canvas.offsetHeight / 2 - 30; // 30:绘制图片的高度一半
             const sprite = new Sprite({
                 pos: [initalX, initalY],
                 size: [60, 60],
                 minSize: [30, 30],
-                maxSize: [120, 120]
+                maxSize: [120, 120],
+                imgUrl: e.querySelector("img").src
             });
             stage.append(sprite);
-        });
+        }
+
+        let isNewText = false;
+
+        const text = document.querySelector("textarea");
+        text.addEventListener("keyup", function() {
+            if (this.value) {
+                console.log(this.value);
+            }
+            
+        })
 
     }
 </script>

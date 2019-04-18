@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <canvas width="600" height="300"></canvas>
+</body>
+<script>
+  const canvas = document.querySelector("canvas");
+  const ctx = canvas.getContext("2d");
+
+  ctx.font = "bold 26px arial";
+  ctx.fillStyle = "pink";
+
+  //横排文字
+  ctx.fillText("hello world", 150, 250);
+
+</script>
+</html>
